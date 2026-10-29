@@ -1,0 +1,19 @@
+{
+    "name": "Astra.Pulse.Tests.PlayMode",
+    "rootNamespace": "Astra.Pulse.Tests",
+    "references": [
+        "Astra.Pulse.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "com.misterpxl.pulse",
+  "displayName": "Astra Pulse — Gameplay Feedback",
+  "version": "1.0.0",
+  "unity": "6000.0",
+  "description": "Gameplay feedback orchestration for Unity: a request/profile data model, a dispatching service and an open IFeedbackPlayer extension point. No dependency on any framework, audio engine or tween package.",
+  "keywords": ["feedback", "juice", "vfx", "gameplay", "astra"],
+  "author": { "name": "MisterPxl" },
+  "license": "MIT",
+  "dependencies": {
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0"
+  }
+}

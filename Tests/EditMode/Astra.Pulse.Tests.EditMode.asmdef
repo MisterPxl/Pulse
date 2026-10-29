@@ -1,0 +1,21 @@
+{
+    "name": "Astra.Pulse.Tests.EditMode",
+    "rootNamespace": "Astra.Pulse.Tests",
+    "references": [
+        "Astra.Pulse.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
