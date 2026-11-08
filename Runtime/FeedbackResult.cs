@@ -11,24 +11,22 @@ namespace Astra.Pulse
         public bool Success { get; }
         public string Message { get; }
         public Exception Exception { get; }
-        public FeedbackType Type { get; }
 
-        private FeedbackResult(bool success, string message, Exception exception, FeedbackType type)
+        private FeedbackResult(bool success, string message, Exception exception)
         {
             Success = success;
             Message = message;
             Exception = exception;
-            Type = type;
         }
 
-        public static FeedbackResult Succeed(FeedbackType type, string message = null)
+        public static FeedbackResult Succeed(string message = null)
         {
-            return new FeedbackResult(true, message, null, type);
+            return new FeedbackResult(true, message, null);
         }
 
-        public static FeedbackResult Fail(string message, FeedbackType type = FeedbackType.None, Exception exception = null)
+        public static FeedbackResult Fail(string message, Exception exception = null)
         {
-            return new FeedbackResult(false, message, exception, type);
+            return new FeedbackResult(false, message, exception);
         }
     }
 }

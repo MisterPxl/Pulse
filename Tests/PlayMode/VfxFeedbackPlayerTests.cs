@@ -45,30 +45,19 @@ namespace Astra.Pulse.Tests
             return null;
         }
 
-        [Test]
-        public void CanPlay_RequiresTheVfxFlagAndAPrefab()
+        private static FeedbackResult PlayVfx(VfxFeedbackPlayer player, GameObject prefab, Vector3 position = default, Transform target = null)
         {
-            VfxFeedbackPlayer player = new VfxFeedbackPlayer();
-            GameObject prefab = CreatePrefab("VfxCan", false, false);
-
-            Assert.That(player.CanPlay(null), Is.False);
-            Assert.That(player.CanPlay(new FeedbackRequest { Type = FeedbackType.Vfx }), Is.False);
-            Assert.That(player.CanPlay(new FeedbackRequest { Type = FeedbackType.Audio, VfxPrefab = prefab }), Is.False);
-            Assert.That(player.CanPlay(new FeedbackRequest { Type = FeedbackType.Vfx, VfxPrefab = prefab }), Is.True);
+            VfxFeedback entry = new VfxFeedback(prefab);
+            return player.Play(entry, new FeedbackRequest(entry) { Position = position, Target = target });
         }
 
         [UnityTest]
-        public IEnumerator Play_InstantiatesAtTheVfxPosition()
+        public IEnumerator Play_InstantiatesAtTheRequestPosition()
         {
             VfxFeedbackPlayer player = new VfxFeedbackPlayer();
             GameObject prefab = CreatePrefab("VfxPosition", false, false);
 
-            FeedbackResult result = player.Play(new FeedbackRequest
-            {
-                Type = FeedbackType.Vfx,
-                VfxPrefab = prefab,
-                VfxPosition = new Vector3(1f, 2f, 3f),
-            });
+            FeedbackResult result = PlayVfx(player, prefab, new Vector3(1f, 2f, 3f));
             yield return null;
 
             Assert.That(result.Success, Is.True, result.Message);
@@ -79,7 +68,7 @@ namespace Astra.Pulse.Tests
         }
 
         [UnityTest]
-        public IEnumerator Play_TargetPositionWinsOverVfxPosition()
+        public IEnumerator Play_TargetPositionWinsOverRequestPosition()
         {
             VfxFeedbackPlayer player = new VfxFeedbackPlayer();
             GameObject prefab = CreatePrefab("VfxTarget", false, false);
@@ -87,13 +76,7 @@ namespace Astra.Pulse.Tests
             target.transform.position = new Vector3(9f, 8f, 7f);
             _toDestroy.Add(target);
 
-            player.Play(new FeedbackRequest
-            {
-                Type = FeedbackType.Vfx,
-                VfxPrefab = prefab,
-                VfxPosition = Vector3.zero,
-                Target = target.transform,
-            });
+            PlayVfx(player, prefab, Vector3.zero, target.transform);
             yield return null;
 
             GameObject instance = FindInstance("VfxTarget", prefab);
@@ -108,7 +91,7 @@ namespace Astra.Pulse.Tests
             VfxFeedbackPlayer player = new VfxFeedbackPlayer();
             GameObject prefab = CreatePrefab("VfxFinite", true, false);
 
-            player.Play(new FeedbackRequest { Type = FeedbackType.Vfx, VfxPrefab = prefab });
+            PlayVfx(player, prefab);
             yield return null;
             GameObject instance = FindInstance("VfxFinite", prefab);
             Assert.That(instance, Is.Not.Null);
@@ -124,7 +107,7 @@ namespace Astra.Pulse.Tests
             VfxFeedbackPlayer player = new VfxFeedbackPlayer();
             GameObject prefab = CreatePrefab("VfxLoop", true, true);
 
-            player.Play(new FeedbackRequest { Type = FeedbackType.Vfx, VfxPrefab = prefab });
+            PlayVfx(player, prefab);
             yield return null;
             GameObject instance = FindInstance("VfxLoop", prefab);
 
@@ -136,16 +119,28 @@ namespace Astra.Pulse.Tests
         }
 
         [Test]
-        public void Play_FailureIsReportedAndLogged()
+        public void Play_WithoutPrefabFailsWithoutSpawning()
         {
             RecordingLogger logger = new RecordingLogger();
             VfxFeedbackPlayer player = new VfxFeedbackPlayer(logger);
 
-            FeedbackResult result = player.Play(new FeedbackRequest { Type = FeedbackType.Vfx, VfxPrefab = null });
+            FeedbackResult result = PlayVfx(player, null);
 
             Assert.That(result.Success, Is.False);
-            Assert.That(result.Type, Is.EqualTo(FeedbackType.Vfx));
-            Assert.That(logger.Errors, Has.Count.EqualTo(1));
+            Assert.That(result.Message, Is.EqualTo("VFX feedback has no prefab."));
+            Assert.That(logger.Errors, Is.Empty);
+        }
+
+        [Test]
+        public void UnityAudioPlayer_WithoutClipFails()
+        {
+            UnityAudioFeedbackPlayer player = new UnityAudioFeedbackPlayer();
+            AudioFeedback entry = new AudioFeedback(null);
+
+            FeedbackResult result = player.Play(entry, new FeedbackRequest(entry));
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Message, Is.EqualTo("Audio feedback has no clip."));
         }
 
         [Test]
@@ -178,17 +173,14 @@ namespace Astra.Pulse.Tests
             AudioClip clip = AudioClip.Create("PulseImpact", 44100, 1, 44100, false);
             _toDestroy.Add(clip);
 
-            FeedbackResult result = service.Play(new FeedbackRequest
+            FeedbackResult result = service.Play(new FeedbackRequest(new VfxFeedback(prefab), new AudioFeedback(clip, 0.5f))
             {
-                Type = FeedbackType.Vfx | FeedbackType.Audio,
-                VfxPrefab = prefab,
-                VfxPosition = Vector3.up,
-                AudioClip = clip,
-                AudioVolume = 0.5f,
+                Position = Vector3.up,
             });
             yield return null;
 
             Assert.That(result.Success, Is.True, result.Message);
+            Assert.That(result.Message, Is.EqualTo("2 of 2 feedback entries played."));
             GameObject vfxInstance = FindInstance("VfxImpact", prefab);
             Assert.That(vfxInstance, Is.Not.Null);
             _toDestroy.Add(vfxInstance);

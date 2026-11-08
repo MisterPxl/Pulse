@@ -8,7 +8,7 @@ namespace Astra.Pulse
     /// A consumer registers it explicitly when no audio engine (such as Echo) is available:
     /// <c>service.RegisterPlayer(new UnityAudioFeedbackPlayer());</c>
     /// </summary>
-    public sealed class UnityAudioFeedbackPlayer : IFeedbackPlayer
+    public sealed class UnityAudioFeedbackPlayer : IFeedbackPlayer<AudioFeedback>
     {
         private readonly IPulseLogger _logger;
 
@@ -17,25 +17,20 @@ namespace Astra.Pulse
             _logger = logger;
         }
 
-        public bool CanPlay(FeedbackRequest request)
+        public FeedbackResult Play(AudioFeedback entry, FeedbackRequest request)
         {
-            return request != null
-                && (request.Type & FeedbackType.Audio) != 0
-                && request.AudioClip != null;
-        }
+            if (entry.Clip == null)
+                return FeedbackResult.Fail("Audio feedback has no clip.");
 
-        public FeedbackResult Play(FeedbackRequest request)
-        {
             try
             {
-                Vector3 position = request.Target != null ? request.Target.position : request.VfxPosition;
-                AudioSource.PlayClipAtPoint(request.AudioClip, position, Mathf.Clamp01(request.AudioVolume));
-                return FeedbackResult.Succeed(FeedbackType.Audio, $"Audio '{request.AudioClip.name}' played.");
+                AudioSource.PlayClipAtPoint(entry.Clip, request.ResolvePosition(), Mathf.Clamp01(entry.Volume));
+                return FeedbackResult.Succeed($"Audio '{entry.Clip.name}' played.");
             }
             catch (Exception ex)
             {
                 _logger?.Error($"Audio feedback exception: {ex.Message}");
-                return FeedbackResult.Fail($"Audio feedback exception: {ex.Message}", FeedbackType.Audio, ex);
+                return FeedbackResult.Fail($"Audio feedback exception: {ex.Message}", ex);
             }
         }
     }

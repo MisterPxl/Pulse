@@ -2,7 +2,8 @@
     "name": "Astra.Pulse.Tests.EditMode",
     "rootNamespace": "Astra.Pulse.Tests",
     "references": [
-        "Astra.Pulse.Runtime"
+        "Astra.Pulse.Runtime",
+        "Astra.Pulse.Editor"
     ],
     "includePlatforms": [
         "Editor"

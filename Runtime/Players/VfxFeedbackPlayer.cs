@@ -4,16 +4,13 @@ using UnityEngine;
 namespace Astra.Pulse
 {
     /// <summary>
-    /// Minimal VFX player that instantiates a prefab at the requested position.
-    /// For v1 this is a fire-and-forget instantiation with auto-destroy support
-    /// via <see cref="ParticleSystem.main"/> duration. If no prefab is provided
-    /// the request is silently skipped.
-    /// Fire-and-forget instances are always given a finite lifetime: a non-looping
+    /// Minimal VFX player that instantiates the entry's prefab at <see cref="FeedbackRequest.ResolvePosition"/>,
+    /// fire-and-forget. Instances are always given a finite lifetime: a non-looping
     /// ParticleSystem drives the exact duration, anything else falls back to
     /// <see cref="FallbackLifetimeSeconds"/> so spawned objects can never leak.
     /// </summary>
     [UnityEngine.Scripting.APIUpdating.MovedFrom(false, "Game.Feedback", "Game.Feedback", "VfxFeedbackPlayer")]
-    public sealed class VfxFeedbackPlayer : IFeedbackPlayer
+    public sealed class VfxFeedbackPlayer : IFeedbackPlayer<VfxFeedback>
     {
         /// <summary>
         /// Lifetime used when the prefab has no non-looping ParticleSystem to derive
@@ -28,24 +25,16 @@ namespace Astra.Pulse
             _logger = logger;
         }
 
-        public bool CanPlay(FeedbackRequest request)
+        public FeedbackResult Play(VfxFeedback entry, FeedbackRequest request)
         {
-            return request != null
-                && (request.Type & FeedbackType.Vfx) != 0
-                && request.VfxPrefab != null;
-        }
+            if (entry.Prefab == null)
+                return FeedbackResult.Fail("VFX feedback has no prefab.");
 
-        public FeedbackResult Play(FeedbackRequest request)
-        {
             try
             {
-                Vector3 position = request.Target != null
-                    ? request.Target.position
-                    : request.VfxPosition;
-
                 GameObject instance = UnityEngine.Object.Instantiate(
-                    request.VfxPrefab,
-                    position,
+                    entry.Prefab,
+                    request.ResolvePosition(),
                     Quaternion.identity);
 
                 ParticleSystem ps = instance.GetComponent<ParticleSystem>();
@@ -57,12 +46,12 @@ namespace Astra.Pulse
                 // never be cleaned up since the caller holds no handle to it.
                 UnityEngine.Object.Destroy(instance, lifetime);
 
-                return FeedbackResult.Succeed(FeedbackType.Vfx, $"VFX '{request.VfxPrefab.name}' spawned.");
+                return FeedbackResult.Succeed($"VFX '{entry.Prefab.name}' spawned.");
             }
             catch (Exception ex)
             {
                 _logger?.Error($"VFX feedback exception: {ex.Message}");
-                return FeedbackResult.Fail($"VFX feedback failed: {ex.Message}", FeedbackType.Vfx, ex);
+                return FeedbackResult.Fail($"VFX feedback failed: {ex.Message}", ex);
             }
         }
     }
