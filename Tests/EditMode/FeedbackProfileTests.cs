@@ -54,6 +54,17 @@ namespace Astra.Pulse.Tests
         }
 
         [Test]
+        public void BuildRequest_CarriesTheIntensityDefaultingToOne()
+        {
+            SetEntries(_profile, new HudFeedback("Hello"));
+
+            Assert.That(_profile.BuildRequest().Intensity, Is.EqualTo(1f));
+            Assert.That(_profile.BuildRequest(0.25f).Intensity, Is.EqualTo(0.25f));
+            Assert.That(_profile.BuildRequest(0.25f).Entries, Has.Count.EqualTo(1));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => _profile.BuildRequest(-1f));
+        }
+
+        [Test]
         public void Entries_SurviveSerializationWithTheirTypeAndData()
         {
             SetEntries(_profile, new AudioFeedback(null, 0.5f), new CameraShakeFeedback(0.4f, 0.3f), new AlphaEntry());

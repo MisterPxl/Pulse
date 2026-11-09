@@ -5,6 +5,7 @@ namespace Astra.Pulse
 {
     /// <summary>
     /// Optional standalone audio player built on <see cref="AudioSource.PlayClipAtPoint(AudioClip, Vector3, float)"/>.
+    /// Plays at the entry volume times <see cref="FeedbackRequest.Intensity"/>, clamped to 1.
     /// A consumer registers it explicitly when no audio engine (such as Echo) is available:
     /// <c>service.RegisterPlayer(new UnityAudioFeedbackPlayer());</c>
     /// </summary>
@@ -24,7 +25,7 @@ namespace Astra.Pulse
 
             try
             {
-                AudioSource.PlayClipAtPoint(entry.Clip, request.ResolvePosition(), Mathf.Clamp01(entry.Volume));
+                AudioSource.PlayClipAtPoint(entry.Clip, request.ResolvePosition(), Mathf.Clamp01(entry.Volume * request.Intensity));
                 return FeedbackResult.Succeed($"Audio '{entry.Clip.name}' played.");
             }
             catch (Exception ex)

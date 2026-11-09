@@ -6,12 +6,13 @@ namespace Astra.Pulse
 {
     /// <summary>
     /// Feedback to trigger: typed entries, each played by the players registered for its type, and the
-    /// spatial context they share. <c>new FeedbackRequest(new AudioFeedback(clip), new VfxFeedback(spark)) { Position = hit }</c>.
+    /// context they share. <c>new FeedbackRequest(new AudioFeedback(clip), new VfxFeedback(spark)) { Position = hit, Intensity = 0.5f }</c>.
     /// </summary>
     [UnityEngine.Scripting.APIUpdating.MovedFrom(false, "Game.Feedback", "Game.Feedback", "FeedbackRequest")]
     public sealed class FeedbackRequest
     {
         private readonly List<IFeedbackEntry> _entries = new List<IFeedbackEntry>();
+        private float _intensity = 1f;
 
         public FeedbackRequest(params IFeedbackEntry[] entries)
         {
@@ -28,6 +29,22 @@ namespace Astra.Pulse
         public Transform Target { get; set; }
 
         public Vector3 Position { get; set; }
+
+        /// <summary>
+        /// Scale players apply to the strength of their entries (shake amplitude, volume...); 1 plays the
+        /// entries as authored. Finite and non-negative.
+        /// </summary>
+        public float Intensity
+        {
+            get => _intensity;
+            set
+            {
+                if (!(value >= 0f) || float.IsInfinity(value))
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Feedback intensity must be finite and non-negative.");
+
+                _intensity = value;
+            }
+        }
 
         public Vector3 ResolvePosition()
         {

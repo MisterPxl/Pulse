@@ -12,7 +12,8 @@ Typed feedback entries replace the closed feedback enum. Breaking:
 - `PulseService` plays every entry, isolates a throwing player instead of aborting the request, and succeeds when at least one entry played (`"n of m feedback entries played."`).
 - `FeedbackResult.Succeed(string message = null)` / `Fail(string message, Exception exception = null)`.
 - `FeedbackServiceExtensions`: `Play(IFeedbackEntry)` and `Play(FeedbackProfileSO)` added; `PlayAudio` / `PlayShake` build typed entries.
-- `FeedbackProfileSO` holds a `[SerializeReference] List<IFeedbackEntry>`; `BuildRequest()` skips empty slots.
+- `FeedbackProfileSO` holds a `[SerializeReference] List<IFeedbackEntry>`; `BuildRequest(float intensity = 1f)` skips empty slots and sets the request intensity.
+- `FeedbackRequest.Intensity` (default 1; negative, NaN or infinite values throw): the scale players apply to the strength of their entries. `UnityAudioFeedbackPlayer` plays at `Volume × Intensity` clamped to 1.
 - New editor assembly `Astra.Pulse.Editor`: profile inspector with an **Add Entry** type menu (`FeedbackEntryTypes`).
 
 ## [1.0.0]

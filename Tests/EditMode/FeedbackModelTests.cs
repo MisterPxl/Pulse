@@ -45,6 +45,31 @@ namespace Astra.Pulse.Tests
         }
 
         [Test]
+        public void FeedbackRequest_IntensityDefaultsToOneAndAcceptsZero()
+        {
+            FeedbackRequest request = new FeedbackRequest(new AlphaEntry());
+
+            Assert.That(request.Intensity, Is.EqualTo(1f));
+
+            request.Intensity = 0f;
+            Assert.That(request.Intensity, Is.EqualTo(0f));
+
+            request.Intensity = 2.5f;
+            Assert.That(request.Intensity, Is.EqualTo(2.5f));
+        }
+
+        [TestCase(-0.1f)]
+        [TestCase(float.NaN)]
+        [TestCase(float.PositiveInfinity)]
+        public void FeedbackRequest_RejectsANegativeOrNonFiniteIntensity(float intensity)
+        {
+            FeedbackRequest request = new FeedbackRequest();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => request.Intensity = intensity);
+            Assert.That(request.Intensity, Is.EqualTo(1f));
+        }
+
+        [Test]
         public void FeedbackRequest_TargetPositionWinsOverPosition()
         {
             GameObject anchor = new GameObject("PulseAnchor");

@@ -5,7 +5,7 @@
 ## Concepts
 
 - `IFeedbackEntry`: one piece of feedback holding its own data. Built-in entries: `AudioFeedback` (clip, volume), `CameraShakeFeedback` (amplitude, duration, frequency), `HudFeedback` (message), `VfxFeedback` (prefab).
-- `FeedbackRequest`: a list of entries plus the spatial context they share (`Target`, `Position`; `ResolvePosition()` prefers the target).
+- `FeedbackRequest`: a list of entries plus the context they share: `Target`, `Position` (`ResolvePosition()` prefers the target) and `Intensity` (default 1, finite and non-negative), the scale a player applies to the strength of its entries.
 - `IFeedbackPlayer<TEntry>`: plays one entry type. **This is the extension point**: a pack declares its own entry type and its player, registers the player, and edits nothing in Pulse.
 - `PulseService` (`IFeedbackService`): plays each entry through every player registered for the entry's **exact runtime type**, in registration order. A request succeeds when at least one entry played; an entry with no player, a failing or a throwing player is logged and does not stop the other entries.
 - `FeedbackProfileSO`: entries authored as an asset (`Astra/Pulse/Feedback Profile`), in a `[SerializeReference]` list.
@@ -26,6 +26,10 @@ feedback.PlayAudio(myClip, 0.8f);
 ```
 
 To play a profile at a position, build its request first: `FeedbackRequest request = myProfile.BuildRequest(); request.Target = enemy;`.
+
+## Intensity
+
+A profile is fixed data; the strength that depends on the gameplay moment travels on the request: `myProfile.BuildRequest(knockback / 10f)` or `request.Intensity = 0.5f`. Each player decides what intensity scales for its entry type: `UnityAudioFeedbackPlayer` plays at `Volume × Intensity` clamped to 1, and a consumer's camera-shake player typically multiplies the amplitude. `VfxFeedbackPlayer` ignores it. A pack player applies it to its own entries the same way.
 
 ## Adding a feedback type
 
